@@ -91,20 +91,43 @@
                         </div>
                     </div>
                 </div>
-                <div id="tuner-wireless" class="top-25">
-                    <p class="m-0 text-gray">If you are connecting your tuner <strong>wirelessly</strong>, enter the tuner IP. <br> If you use <strong>xdrd</strong>, use 127.0.0.1 as your IP.</p>
-                    <div class="flex-center top-25">
+                <div id="wireless" class="top-25">
+                    <div style="width: 300px;" class="auto top-10">
+                        <label class="toggleSwitch nolabel" onclick="">
+                            <input id="wireless-type-toggle" type="checkbox"/>
+                            <a></a>
+                            <span>
+                                <span class="left-span">XDRD</span>
+                                <span class="right-span">SDR</span>
+                            </span>
+                        </label>
+                    </div>
+                    <div id="tuner-wireless" class="top-25">
+                        <p class="m-0 text-gray">If you are connecting your tuner <strong>wirelessly</strong>, enter the tuner IP. <br> If you use <strong>xdrd</strong>, use 127.0.0.1 as your IP.</p>
+                        <div class="flex-center top-25">
+                            <div class="form-group">
+                                <label for="xdrd-ip">xdrd ip address:</label>
+                                <input class="input-text w-150" type="text" name="xdrd-ip" id="xdrd-ip" placeholder="127.0.0.1">
+                            </div>  
+                            <div class="form-group">
+                                <label for="xdrd-port">xdrd port:</label>
+                                <input class="input-text w-100" type="text" name="xdrd-port" id="xdrd-port" placeholder="7373">
+                            </div> 
+                            <div class="form-group">
+                                <label for="xdrd-password">xdrd server password:</label>
+                                <input class="input-text w-150" type="password" name="xdrd-password" id="xdrd-password">
+                            </div> 
+                        </div>
+                    </div>
+                    <div id="tuner-sdr" class="top-25">
+                        <p class="text-gray">If you are connecting your tuner <strong>via TCP/IP</strong>, enter the tuner IP. <br> If you use <strong>sdrsuperserver</strong>, use 127.0.0.1 as your IP.</p>
                         <div class="form-group">
-                            <label for="xdrd-ip">xdrd ip address:</label>
-                            <input class="input-text w-150" type="text" name="xdrd-ip" id="xdrd-ip" placeholder="127.0.0.1">
+                            <label for="sdr-ip">sdr ip address:</label>
+                            <input class="input-text w-150" type="text" name="sdr-ip" id="sdr-ip" placeholder="127.0.0.1">
                         </div>  
                         <div class="form-group">
-                            <label for="xdrd-port">xdrd port:</label>
-                            <input class="input-text w-100" type="text" name="xdrd-port" id="xdrd-port" placeholder="7373">
-                        </div> 
-                        <div class="form-group">
-                            <label for="xdrd-password">xdrd server password:</label>
-                            <input class="input-text w-150" type="password" name="xdrd-password" id="xdrd-password">
+                            <label for="sdr-port">sdr port:</label>
+                            <input class="input-text w-100" type="text" name="sdr-port" id="sdr-port" placeholder="7373">
                         </div> 
                     </div>
                 </div>

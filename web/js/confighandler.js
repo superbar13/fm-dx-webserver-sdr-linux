@@ -42,9 +42,13 @@ function submitData() {
     var comDevicesDataValue = $(".option:contains('" + comDevicesValue + "')").attr('data-value') || '';
     const comPort = comDevicesDataValue;
     const wirelessConnection = $('#connection-type-toggle').is(":checked") || false;
+    const wirelessType = $('#connection-type-toggle').is(":checked") || false;
     const xdrdIp = $('#xdrd-ip').val() || '127.0.0.1';
     const xdrdPort = $('#xdrd-port').val() || '7373';
     const xdrdPassword = $('#xdrd-password').val() || 'password';
+
+    const sdrsuperserverIp = $('#sdr-ip').val() || '127.0.0.1';
+    const sdrsuperserverPort = $('#sdr-port').val() || '5555';
 
     const audioDevice = $('#audio-devices').val() || 'Microphone (High Definition Audio Device)';
     const audioChannels = ($('.options .option').filter(function() {
@@ -122,6 +126,11 @@ function submitData() {
         xdrdIp,
         xdrdPort,
         xdrdPassword
+      },
+      sdrsuperserver: {
+        wirelessType,
+        sdrsuperserverIp,
+        sdrsuperserverPort
       },
       audio: {
         audioDevice, 
@@ -215,13 +224,22 @@ function submitData() {
         $('#ip-addresses').val(data.webserver.banlist?.join('\n') || "");
 
         $('#connection-type-toggle').prop("checked", data.xdrd.wirelessConnection || false);
+        $('#wireless-type-toggle').prop("checked", data.sdrsuperserver.wirelessType || false);
         
         if($('#connection-type-toggle').is(":checked")) {
           $('#tuner-usb').hide();
+          $('#wireless').show();
+        } else {
+          $('#wireless').hide();
+          $('#tuner-usb').show();
+        }
+
+        if($('#wireless-type-toggle').is(":checked")) {
+          $('#tuner-sdr').hide();
           $('#tuner-wireless').show();
         } else {
           $('#tuner-wireless').hide();
-          $('#tuner-usb').show();
+          $('#tuner-sdr').show();
         }
 
         $('#xdrd-ip').val(data.xdrd.xdrdIp);
@@ -232,6 +250,9 @@ function submitData() {
         if (selectedDevice.length > 0) {
           $("#com-devices").val(selectedDevice.text());
         }
+
+        $('#sdr-ip').val(data.sdrsuperserver.sdrsuperserverIp);
+        $('#sdr-port').val(data.sdrsuperserver.sdrsuperserverPort);
 
         $('#device-type').val(data.device);
         var selectedDevice = $(".option[data-value='" + data.device + "']");

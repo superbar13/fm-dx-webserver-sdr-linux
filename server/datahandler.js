@@ -379,6 +379,72 @@ function handleData(ws, receivedData) {
     }
 }
 
+function handleDataRTLSDR(ws, data) {
+  // Retrieve the last update time for this client
+  let lastUpdateTime = clientUpdateIntervals.get(ws) || 0;
+  const currentTime = Date.now();
+
+  // Extract the RDS data
+  const pi = data.pi.replace('0x', '');
+
+  const pty = data.prog_type;
+
+  const ps = data.ps;
+  const rt = data.radiotext;
+
+  const tp = data.tp;
+  const ta = data.ta;
+
+  const freq = data.freq.toFixed(1);
+  const af = data.alt_frequencies_a;
+
+  // Update the dataToSend object
+  if(pi && pi.length > 0) dataToSend.rds = true;
+  else dataToSend.rds = false;
+  dataToSend.pi = pi;
+
+  dataToSend.pty = pty;
+  dataToSend.ps = ps;
+
+  dataToSend.rt0 = rt;
+
+  dataToSend.tp = tp;
+  dataToSend.ta = ta;
+
+  dataToSend.freq = freq;
+
+  dataToSend.af = af;
+
+  dataToSend.country_name = data.country || '';
+  dataToSend.country_iso = data.language || '';
+
+  dataToSend.ps_errors = '0'.repeat(ps?.length || 0);
+  dataToSend.rt0_errors = '0'.repeat(rt?.length || 0);
+
+  // Get the received TX info
+  if(dataToSend.pi && dataToSend.pi.length > 0 && dataToSend.ps && dataToSend.ps.length > 0) {
+    const currentTx = fetchTx(parseFloat(dataToSend.freq).toFixed(1), dataToSend.pi, dataToSend.ps);
+    if(currentTx && currentTx.station !== undefined) {
+      dataToSend.txInfo = {
+        station: currentTx.station,
+        pol: currentTx.pol,
+        erp: currentTx.erp,
+        city: currentTx.city,
+        itu: currentTx.itu,
+        distance: currentTx.distance,
+        azimuth: currentTx.azimuth
+      }
+    }
+  }
+
+  // Send the updated data to the client
+  const dataToSendJSON = JSON.stringify(dataToSend);
+  if (currentTime - lastUpdateTime >= updateInterval) {
+    clientUpdateIntervals.set(ws, currentTime); // Update the last update time for this client
+    ws.send(dataToSendJSON);
+  }
+}
+
 function showOnlineUsers(currentUsers) {
   dataToSend.users = currentUsers;
   initialData.users = currentUsers;
@@ -408,5 +474,5 @@ function processSignal(receivedData, st, stForced) {
 }
 
 module.exports = {
-  handleData, showOnlineUsers, dataToSend, initialData, resetToDefault
+  handleData, showOnlineUsers, dataToSend, initialData, resetToDefault, handleDataRTLSDR
 };

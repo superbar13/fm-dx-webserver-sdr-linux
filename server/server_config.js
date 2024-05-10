@@ -27,6 +27,11 @@ let serverConfig = {
     xdrdPort: 7373,
     xdrdPassword: ""
   },
+  sdrsuperserver: {
+    sdrsuperserverIp: "",
+    sdrsuperserverPort: 5555,
+    wirelessType: "",
+  },
   audio: {
     audioDevice: "Microphone (High Definition Audio Device)",
     audioChannels: 2,

@@ -81,6 +81,14 @@ function resolveDataBuffer(data, wss) {
   }
 }
 
+function resolveData(data, wss) {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      dataHandler.handleDataRTLSDR(client, data);
+    }
+  });
+}
+
 function kickClient(ipAddress) {
   // Find the entry in connectedClients associated with the provided IP address
   const targetClient = storage.connectedUsers.find(client => client.ip === ipAddress);
@@ -99,5 +107,5 @@ function kickClient(ipAddress) {
 }
 
 module.exports = {
-  parseMarkdown, removeMarkdown, formatUptime, resolveDataBuffer, kickClient
+  parseMarkdown, removeMarkdown, formatUptime, resolveDataBuffer, kickClient, resolveData
 }

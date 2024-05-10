@@ -239,7 +239,11 @@ label {
     text-transform: uppercase;
   }
 
-  #tuner-wireless {
+  #wireless {
+    display: none;
+  }
+
+  #tuner-sdr {
     display: none;
   }
 

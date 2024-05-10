@@ -16,6 +16,7 @@ const net = require('net');
 const client = new net.Socket();
 const crypto = require('crypto');
 const { SerialPort } = require('serialport')
+const fetch = require('node-fetch');
 
 // File imports
 const helpers = require('./helpers');
@@ -61,6 +62,7 @@ app.use(bodyParser.json());
 
 connectToXdrd();
 connectToSerial();
+connectToSDRSuperServer();
 
 // Serial Connection
 function connectToSerial() {
@@ -105,9 +107,9 @@ function connectToSerial() {
 
 // xdrd connection
 function connectToXdrd() {
-  const { xdrd } = serverConfig;
+  const { xdrd, sdrsuperserver } = serverConfig;
 
-  if (xdrd.wirelessConnection) {
+  if (xdrd.wirelessConnection && !sdrsuperserver.wirelessType) {
     client.connect(xdrd.xdrdPort, xdrd.xdrdIp, () => {
       logInfo('Connection to xdrd established successfully.');
       
@@ -176,6 +178,50 @@ function connectToXdrd() {
           }
           authDataHandler(data);
       });
+    });
+  }
+}
+
+// SDR Super Server connection
+function connectToSDRSuperServer() {
+  const { xdrd, sdrsuperserver } = serverConfig;
+
+  if (xdrd.wirelessConnection && sdrsuperserver.wirelessType) {
+    // using node fetch to get the data from the sdrsuperserver stream
+    fetch(`http://${sdrsuperserver.sdrsuperserverIp}:${sdrsuperserver.sdrsuperserverPort || 5555}/stream`)
+    .then(function (response) {
+      // read the stream data
+      response.body.on('data', function (data) {
+        // buffer to string to json
+        let jsonData = data.toString();
+        let parsedData = JSON.parse(jsonData);
+        helpers.resolveData(parsedData, wss);
+      });
+
+      // on end of the stream
+      response.body.on('end', function () {
+        logWarn('Connection to SDR Super Server lost. Attempting to reconnect.');
+        setTimeout(function () {
+          connectToSDRSuperServer();
+        }, 2000);
+      });
+
+      // on error
+      response.body.on('error', function (err) {
+        logError('Error connecting to SDR Super Server:', err);
+
+        // retry connection
+        setTimeout(function () {
+          connectToSDRSuperServer();
+        }, 2000);
+      });
+    }).catch(function (err) {
+      logError('Error connecting to SDR Super Server:', err);
+
+      // retry connection
+      setTimeout(function () {
+        connectToSDRSuperServer();
+      }, 2000);
     });
   }
 }
@@ -302,11 +348,25 @@ wss.on('connection', (ws, request) => {
     }
 
     if (command.startsWith('T')) {
-        const tuneFreq = Number(command.slice(1)) / 1000;
-        const { tuningLimit, tuningLowerLimit, tuningUpperLimit } = serverConfig.webserver;
-        
-        if (tuningLimit && (tuneFreq < tuningLowerLimit || tuneFreq > tuningUpperLimit) || isNaN(tuneFreq)) {
-            return;
+        if(serverConfig.xdrd.wirelessConnection !== false && serverConfig.wirelessType !== false) {
+          const tuneFreq = Number(command.slice(1)) / 1000;
+          const { tuningLimit, tuningLowerLimit, tuningUpperLimit } = serverConfig.webserver;
+          
+          if (tuningLimit && (tuneFreq < tuningLowerLimit || tuneFreq > tuningUpperLimit) || isNaN(tuneFreq)) {
+              return;
+          } else {
+            return fetch(`http://${serverConfig.sdrsuperserver.sdrsuperserverIp}:${serverConfig.sdrsuperserver.sdrsuperserverPort || 5555}/changeFrequency/${tuneFreq}`,
+            {
+              method: 'POST',
+            });
+          }
+        } else {
+          const tuneFreq = Number(command.slice(1)) / 1000;
+          const { tuningLimit, tuningLowerLimit, tuningUpperLimit } = serverConfig.webserver;
+          
+          if (tuningLimit && (tuneFreq < tuningLowerLimit || tuneFreq > tuningUpperLimit) || isNaN(tuneFreq)) {
+              return;
+          }
         }
     }
 

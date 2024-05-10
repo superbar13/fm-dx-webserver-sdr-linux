@@ -59,11 +59,21 @@ $(document).ready(function() {
   $('#connection-type-toggle').change(function(){
     if($(this).is(":checked")) {
         $('#tuner-usb').hide();
-        $('#tuner-wireless').show();
+        $('#wireless').show();
     } else {
-        $('#tuner-wireless').hide();
+        $('#wireless').hide();
         $('#tuner-usb').show();
     }
+});
+
+$('#wireless-type-toggle').change(function(){
+  if($(this).is(":checked")) {
+      $('#tuner-wireless').hide();
+      $('#tuner-sdr').show();
+  } else {
+      $('#tuner-sdr').hide();
+      $('#tuner-wireless').show();
+  }
 });
 
   $('#login-form').submit(function (event) {
