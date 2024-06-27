@@ -380,46 +380,44 @@ function handleData(ws, receivedData) {
 }
 
 function handleDataRTLSDR(ws, data) {
-  // Retrieve the last update time for this client
-  let lastUpdateTime = clientUpdateIntervals.get(ws) || 0;
-  const currentTime = Date.now();
-
-  // Extract the RDS data
-  const pi = data.pi.replace('0x', '');
-
-  const pty = data.prog_type;
-
-  const ps = data.ps;
-  const rt = data.radiotext;
-
-  const tp = data.tp;
-  const ta = data.ta;
-
-  const freq = data.freq.toFixed(1);
-  const af = data.alt_frequencies_a;
-
   // Update the dataToSend object
-  if(pi && pi.length > 0) dataToSend.rds = true;
+  dataToSend.pi = data.pi ? data.pi.replace('0x', '') : '?';
+
+  if(data.pi && data.pi.length > 0) dataToSend.rds = true;
   else dataToSend.rds = false;
-  dataToSend.pi = pi;
 
-  dataToSend.pty = pty;
-  dataToSend.ps = ps;
+  dataToSend.pty = data.prog_type;
+  dataToSend.ps = data.ps;
 
-  dataToSend.rt0 = rt;
+  dataToSend.rt0 = data.radiotext;
 
-  dataToSend.tp = tp;
-  dataToSend.ta = ta;
+  dataToSend.tp = data.tp;
+  dataToSend.ta = data.ta;
 
-  dataToSend.freq = freq;
+  dataToSend.freq = data.freq.toFixed(1);
 
-  dataToSend.af = af;
+  dataToSend.af = data.alt_frequencies_a;
 
   dataToSend.country_name = data.country || '';
-  dataToSend.country_iso = data.language || '';
+  dataToSend.country_iso = data.language || 'UN'
 
-  dataToSend.ps_errors = '0'.repeat(ps?.length || 0);
-  dataToSend.rt0_errors = '0'.repeat(rt?.length || 0);
+  dataToSend.ps_errors = '0'.repeat(dataToSend.ps?.length || 0);
+  dataToSend.rt0_errors = '0'.repeat(dataToSend.rt?.length || 0);
+
+  snr = data?.snr || 0;
+
+  // Convert parsedValue to a number
+  var signal = parseFloat(snr.toFixed(2));
+  dataToSend.signal = signal;
+  initialData.signal = signal;
+
+  // Convert highestSignal to a number for comparison
+  var highestSignal = parseFloat(dataToSend.highestSignal);
+  if (signal > highestSignal) {
+      dataToSend.highestSignal = signal.toString(); // Convert back to string for consistency
+  }
+
+
 
   // Get the received TX info
   if(dataToSend.pi && dataToSend.pi.length > 0 && dataToSend.ps && dataToSend.ps.length > 0) {
@@ -439,8 +437,8 @@ function handleDataRTLSDR(ws, data) {
 
   // Send the updated data to the client
   const dataToSendJSON = JSON.stringify(dataToSend);
-  if (currentTime - lastUpdateTime >= updateInterval) {
-    clientUpdateIntervals.set(ws, currentTime); // Update the last update time for this client
+  if (Date.now() - (clientUpdateIntervals.get(ws) || 0) >= updateInterval) {
+    clientUpdateIntervals.set(ws, Date.now()); // Update the last update time for this client
     ws.send(dataToSendJSON);
   }
 }
